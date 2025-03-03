@@ -1,0 +1,41 @@
+<apex:component controller="StudentResultsTableController" access="global" language="{!lan}">
+	<apex:attribute name="recordId" description="Student record id used to get related choice results" type="Id" assignTo="{!studentId}" />
+	<apex:attribute name="recordTypeDeveloperName" description="Round Application record type developer name (Round_1, Round_2, etc)" type="String" assignTo="{!appType}" />
+	<apex:attribute name="language" description="The language of the email" type="String" assignTo="{!lan}" />
+
+	<!-- TODO: Replace in-line styling with something cleaner. Ran into issue with gmail emails removing styling if it wasn't inline -->
+	<!--<apex:outputPanel layout="none" rendered="{!wsrs.size > 0}">-->
+    <apex:outputPanel layout="none" rendered="{!finalResults.size > 0}">
+		<table style="border-collapse: collapse; width: 100%; border: 1px solid black;">
+			<thead>
+				<tr>
+					<th style="border: 1px solid black; padding: 8px; text-align: left;">{!$Label.Student_Results_Table_Rank_Header}</th>
+					<th style="border: 1px solid black; padding: 8px; text-align: left;">{!$Label.Student_Results_Table_School_Header}</th>
+					<th style="border: 1px solid black; padding: 8px; text-align: left;">{!$Label.Student_Results_Table_Status_Header}</th>
+				</tr>
+			</thead>
+			<tbody>
+				<!--<apex:repeat value="{!wsrs}" var="wsr">
+					<tr>
+						<td style="border: 1px solid black; padding: 8px; text-align: left;">{!wsr.Wsr_Rank__c}</td>
+						<td style="border: 1px solid black; padding: 8px; text-align: left;">{!wsr.Wsr_Program__r.Name}</td>
+						<td style="border: 1px solid black; padding: 8px; text-align: left;">{!wsr.Offer_Status__c}</td>
+					</tr>
+				</apex:repeat>-->
+                <apex:repeat value="{!finalResults}" var="result">
+                    <tr>
+                        <td style="border: 1px solid black; padding: 8px; text-align: left;">{!result.rank}</td>
+                        <td style="border: 1px solid black; padding: 8px; text-align: left;">{!result.school}</td>
+                        <td style="border: 1px solid black; padding: 8px; text-align: left;">{!result.status}</td>
+                    </tr>
+                </apex:repeat>
+			</tbody>
+		</table>
+	</apex:outputPanel>
+	<!--<apex:outputPanel layout="none" rendered="{!wsrs.size == 0}">-->
+    <apex:outputPanel layout="none" rendered="{!finalResults.size == 0}">
+		<p>
+			<apex:outputText escape="false" value="{!$Label.Offer_Published_Table_No_Results}" />
+		</p>
+	</apex:outputPanel>
+</apex:component>
