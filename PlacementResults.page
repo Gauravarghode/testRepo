@@ -1,0 +1,770 @@
+<apex:page showHeader="{!IsStaffUser}" sidebar="{!IsStaffUser}" applyBodyTag="false" docType="html-5.0"
+ controller="PlacementResultsController" language="{!HtmlLanguage}" extensions="HelpTextControllerExtension">
+
+ <html lang="{!SUBSTITUTE(htmlLanguage, '_', '-')}">
+	<head>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+		<meta charset="utf-8" />
+		<meta name="description" content="" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<link rel="stylesheet" href="{!URLFOR($Resource.enrollment_demo,'css/project.css')}"></link>
+		<link rel="stylesheet" href="{!URLFOR($Resource.enrollment_demo,'css/placement-results.css')}"></link>
+		<link rel="shortcut icon" href="{!URLFOR($Resource.favicon)}" type="image/x-icon" />
+		<script src="{!URLFOR($Resource.enrollment_demo, 'js/vendor/jquery-2.2.4.min.js')}"></script>
+		<script src="{!URLFOR($Resource.enrollment_demo, 'js/vendor/bootstrap.min.js')}"></script>
+		<script src="{!URLFOR($Resource.enrollment_demo, 'js/modal.js')}"></script>
+		<script>
+			function showSpinner() {
+				jQuery(".shownModal").css("display", "none");
+				jQuery(".hiddenModal").css("display", "block");
+			}
+
+			function hideSpinner() {
+				jQuery(".shownModal").css("display", "block");
+				jQuery(".hiddenModal").css("display", "none");
+			}
+		</script>
+		<title>{!BLANKVALUE(PageConfig.Page_Title__c, $Label.View_Placement_Results)}</title>
+	</head>
+
+	<body>
+		<div class="wrapper">
+			<apex:form id="main-form">
+				<apex:outputPanel >
+					<c:SiteHeader hideBranding="{!IsStaffUser}" htmlLanguage="{!htmlLanguage}" />
+				</apex:outputPanel>
+				<div class="container sectionContent foreground-color-no-shadow">
+					<br/>
+					<apex:outputpanel id="messages">
+						<apex:pagemessages />
+					</apex:outputpanel>
+
+					<!-- Page config -->
+					<div>
+						<div class="row">
+							<div class="col-md-12">
+								<h1>
+									<apex:outputText escape="false" value="{!PageConfig.Main_Title__c}" />
+								</h1>
+								<apex:outputText escape="false" value="{!PageConfig.Main_Instructions__c}" />
+							</div>
+						</div>
+
+						<apex:outputPanel layout="block" styleClass="row" rendered="{!PageConfig.Show_Section_1__c}">
+							<div class="col-md-12">
+								<h2>
+									<apex:outputText escape="false" value="{!PageConfig.Section_1_Title__c}" />
+								</h2>
+								<apex:outputText escape="false" value="{!PageConfig.Section_1_Instructions__c}" />
+							</div>
+						</apex:outputPanel>
+
+						<apex:outputPanel layout="block" styleClass="row" rendered="{!PageConfig.Show_Section_2__c}">
+							<div class="col-md-12">
+								<h2>
+									<apex:outputText escape="false" value="{!PageConfig.Section_2_Title__c}" />
+								</h2>
+								<apex:outputText escape="false" value="{!PageConfig.Section_2_Instructions__c}" />
+							</div>
+						</apex:outputPanel>
+
+						<apex:outputPanel layout="block" styleClass="row" rendered="{!PageConfig.Show_Section_3__c}">
+							<div class="col-md-12">
+								<h2>
+									<apex:outputText escape="false" value="{!PageConfig.Section_3_Title__c}" />
+								</h2>
+								<apex:outputText escape="false" value="{!PageConfig.Section_3_Instructions__c}" />
+							</div>
+						</apex:outputPanel>
+
+						<apex:outputPanel layout="block" styleClass="row" rendered="{!PageConfig.Show_Section_4__c}">
+							<div class="col-md-12">
+								<h2>
+									<apex:outputText escape="false" value="{!PageConfig.Section_4_Title__c}" />
+								</h2>
+								<apex:outputText escape="false" value="{!PageConfig.Section_4_Instructions__c}" />
+							</div>
+						</apex:outputPanel>
+
+						<apex:outputPanel layout="block" styleClass="row" rendered="{!PageConfig.Show_Section_5__c}">
+							<div class="col-md-12">
+								<h2>
+									<apex:outputText escape="false" value="{!PageConfig.Section_5_Title__c}" />
+								</h2>
+								<apex:outputText escape="false" value="{!PageConfig.Section_5_Instructions__c}" />
+							</div>
+						</apex:outputPanel>
+						<br />
+
+					</div>
+					<!-- /Page config -->
+
+					<apex:outputPanel layout="block" styleClass="row placement-results" rendered="{!students.size != 0}" id="placement-results-table">
+						<apex:inputHidden value="{!showAcceptModalError}" id="showAcceptModalError" />
+						<div class="col-xs-12">
+							<apex:repeat value="{!students}" var="s">
+								<apex:variable value="{!studentToCurrentPlacements[s.Id]}" var="currentPlacements" />
+								<apex:variable value="{!studentToCurrentYearRound2Placements[s.Id]}" var="currentRound2Placements" />
+								<apex:variable value="{!studentToRound1Placements[s.Id]}" var="round1Placements" />
+								<apex:variable value="{!studentToRound2Placements[s.Id]}" var="round2Placements" />
+
+								<div class="row student-row" style="" id="{!s.Id}" onclick="placementResults.toggleResults(this);" data-target="#{!s.Id + '-collapse'}" aria-expanded="true" aria-controls="collapse">
+									<div class="flex flex-space-evenly flex-direction-column">
+										<div class="toggle-wrapper">
+											<apex:outputPanel layout="none" rendered="{!OR(currentPlacements.size > 0, round1Placements.size > 0, round2Placements.size > 0, currentRound2Placements.size > 0)}">
+												<button type="button" class="dropdown-btn btn btn-primary" data-target="#{!s.Id + '-collapse'}" aria-expanded="true" aria-controls="collapse" role="button">
+													<i class="fa fa-2x fa-chevron-down"></i>
+												</button>
+											</apex:outputPanel>
+										</div>
+									</div>
+									<div class="col-xs-11">
+										<div class="student-name">{!s.Student_First_Name__c + ' ' + s.Student_Last_Name__c}</div>
+										<apex:outputPanel layout="block" styleClass="student-header-info">
+											<apex:outputText value="{! $Label.Student_Id + ': ' + s.Student_Id__c }" rendered="{!NOT(ISBLANK(s.Student_Id__c))}" />
+										</apex:outputPanel>
+									</div>
+								</div>
+								<div class="row collapse collapse-box in" id="{!s.Id + '-collapse'}">
+
+									<!-- NEXT STEPS -->
+									 <apex:outputPanel rendered="{!OR(studentToHasNextSteps[s.Id], AND(CONTAINS(s.Future_School_Grade__c, 'Pre-K'), NOT(ISBLANK(s.Round_2_Application_Status__c))))}">
+										<h3>{!$Label.Next_Steps_Header}</h3>
+									 </apex:outputPanel>
+									<apex:outputPanel layout="block" styleClass="next-steps-box" rendered="{!AND(CONTAINS(s.Future_School_Grade__c, 'Pre-K'), NOT(ISBLANK(s.Round_2_Application_Status__c)))}">
+										<apex:variable value="{!studentIdToFutureYearForms[s.Id]}" var="studentForms" />
+										<apex:variable value="{!studentToFutureStudentDocuments[s.Id]}" var="studentDocuments" />
+										<p>{!$Label.Next_Steps_Description_Prek}</p>
+
+										<div class="row next-step-card">
+											<div class="col-xs-12">
+												<div class="card-property">
+													<strong class="required-next-step">{!$Label.Next_Steps_Document_Upload}</strong>
+												</div>
+												<apex:outputPanel layout="block" rendered="{!NOT(AND(studentToHasRequiredDocumentsMap[s.Id], OR(studentForms['Pre_K_Eligibility'].Status__c = 'Complete - Ready to Submit', studentForms['Pre_K_Eligibility'].Status__c = 'Submitted')))}">
+													{!$Label.Status}:&nbsp;
+													<apex:outputField value="{!studentForms['Pre_K_Eligibility'].Status__c}" rendered="{!NOT(ISBLANK(studentForms['Pre_K_Eligibility'].Student__c))}" />
+													<apex:outputText value="{!$Label.Student_Card_Not_Started}" rendered="{!ISBLANK(studentForms['Pre_K_Eligibility'].Student__c)}" />						
+												</apex:outputPanel>
+												<apex:outputPanel layout="block" rendered="{! AND(studentToHasRequiredDocumentsMap[s.Id], OR(studentForms['Pre_K_Eligibility'].Status__c = 'Complete - Ready to Submit', studentForms['Pre_K_Eligibility'].Status__c = 'Submitted')) }">
+													{!$Label.Status}: {!$Label.Annual_Form_Documents_Needed}
+												</apex:outputPanel>
+
+												<apex:outputPanel rendered="{!ISBLANK(studentForms['Pre_K_Eligibility'].Student__c)}">
+													<button type="button" class="btn btn-primary" onclick="startForm('{!s.Id}', '{!futureYear}');">
+														{!$Label.Student_Tile_Start_Btn}
+													</button>
+												</apex:outputPanel>
+												<apex:outputPanel rendered="{!OR(studentForms['Pre_K_Eligibility'].Status__c = 'Saved', studentForms['Pre_K_Eligibility'].Status__c = 'Complete - Ready to Submit')}">
+													<button type="button" class="btn btn-primary-inverse" onclick="startForm('{!s.Id}', '{!futureYear}');">
+														{!$Label.Student_Tile_Edit_Btn}
+													</button>
+													<apex:outputPanel rendered="{!studentToHasRequiredDocumentsMap[s.Id]}">
+														<button type="button" class="btn btn-primary-inverse" style="margin-left: 0.25rem;" onclick="goToUploadDocuments('{!JSENCODE(s.Id)}');">
+															{!$Label.Next_Steps_Document_Upload_Start}
+														</button>
+													</apex:outputPanel>
+												</apex:outputPanel>
+
+												<apex:outputPanel rendered="{!studentForms['Pre_K_Eligibility'].Status__c = 'Submitted'}">
+													<a href="javascript:void(0)"  onclick="startForm('{!s.Id}', '{!futureYear}');">
+														<strong>{!$Label.Annual_Forms_View_Form}</strong>
+													</a>
+													<apex:outputPanel layout="block" styleClass="row" rendered="{!studentToHasRequiredDocumentsMap[s.Id]}">
+														<div class="col-xs-12">
+															<button type="button" class="btn btn-primary-inverse" onclick="goToUploadDocuments('{!JSENCODE(s.Id)}');">
+																{!$Label.Next_Steps_Document_Upload_Start}
+															</button>
+														</div>
+													</apex:outputPanel>
+													<apex:outputPanel layout="block" rendered="{!AND(studentDocuments.size > 0, NOT(studentToHasRequiredDocumentsMap[s.Id]))}">
+														<a href="javascript:void(0)" onclick="goToUploadDocuments('{!JSENCODE(s.Id)}');">
+															<strong>{!$Label.Annual_Forms_View_Documents}</strong>
+														</a>
+													</apex:outputPanel>
+												</apex:outputPanel>
+											</div>
+										</div>
+									</apex:outputPanel>
+
+									<apex:outputPanel layout="block" styleClass="next-steps-box" rendered="{!studentToHasNextSteps[s.Id]}">
+										<p>{!$Label.Next_Steps_Description}</p>
+
+										<apex:repeat value="{!studentToNextSteps[s.Id]}" var="nextStep">
+											<div class="row next-step-card">
+												<div class="col-xs-12">
+													<div class="card-property">
+														<strong class="{! IF(nextStep.required, 'required-next-step', '') }">{!nextStep.title}</strong>
+													</div>
+													<div class="card-property">
+														<p class="status-label">
+															{!$Label.Matched_Status}:
+														</p>
+														<p class="{! IF(nextStep.completed, 'status-complete', IF(nextStep.isPending, 'status-pending', 'status-incomplete')) }">
+															<apex:outputText value="{!nextStep.statusLabel}" rendered="{! nextStep.status != 'Recommendation(s) Sent' }" />
+															<!-- Display an alternate status for clarity to parent users -->
+															<apex:outputText value="{! $Label.Teacher_Recommendation_Next_Step_Status_Pending }" rendered="{! nextStep.status == 'Recommendation(s) Sent' }" />
+														</p>
+													</div>
+													<apex:outputPanel layout="block" styleClass="card-property" rendered="{!NOT(ISBLANK(nextStep.description))}">
+														<apex:outputText escape="false" value="{!nextStep.description}" />
+													</apex:outputPanel>
+													<apex:outputPanel layout="block" styleClass="card-actions" style="margin: 1rem 0" rendered="{!nextStep.isActionable}">
+														<a class="btn btn-primary" href="{!nextStep.url}">{!nextStep.actionLabel}</a>
+														<span class="help-icon">
+															<apex:outputLink value="javascript:void(0)">
+																<i class="fa fa-info-circle" />
+																<span>{!helpTextMap[nextStep.helpText]}</span>
+															</apex:outputLink>
+														</span>
+													</apex:outputPanel>
+												</div>
+											</div>
+										</apex:repeat>
+									</apex:outputPanel>
+
+									<!-- CURRENT YEAR-->
+									<apex:outputPanel layout="block" styleClass="round-row" rendered="{!currentPlacements.size > 0}">
+										<div class="year-box">
+											<div class="row student-year-row">
+												<div class="col-xs-12">
+													<span class="student-header-info">
+														<apex:outputField value="{!s.Current_Grade_Ordinal__c}" lang="{!htmlLanguage}" style="color: white;" styleClass="student-header-info" rendered="{!LEFT(LOWER(htmlLanguage), 2) != 'es'}" /> 
+														<apex:outputField value="{!s.Current_Grade_Ordinal_Spanish__c}" lang="{!htmlLanguage}" style="color: white;" styleClass="student-header-info" rendered="{!LEFT(LOWER(htmlLanguage), 2) == 'es'}" /> 
+													</span> 
+													<!-- Confirm which school year field this needs to look to -->
+													<span class="student-header-info">({!currentYear})</span>
+												</div>
+											</div>
+
+											<apex:repeat value="{!studentToCurrentPlacements[s.Id]}" var="placement">
+												<div class="row wsr-card">
+													<div class="col-xs-12">
+														<div class="card-property">
+															<strong>{!$Label.Rank}&nbsp;{!placement.app.Program_Rank__c}</strong>
+														</div>
+														<div class="card-property">
+															<strong>{!placement.app.Program__r.Name}</strong>
+														</div>
+														<div class="card-property">
+															<p class="status-label">
+																{!$Label.Matched_Status}:
+															</p>
+															<p class="status-value">
+																<apex:outputField value="{!placement.wsr.Offer_Status__c}" rendered="{! NOT(ISBLANK(TRIM(placement.wsrStatus))) }" />
+																<apex:outputField value="{!placement.app.hed__Application_Status__c}" rendered="{! ISBLANK(TRIM(placement.wsrStatus)) }" />
+																<apex:outputPanel layout="none" rendered="{! NOT(ISBLANK(placement.wsr.Decline_Reason__c)) }">
+																	- <apex:outputField value="{!placement.wsr.Decline_Reason__c}" rendered="{! NOT(ISBLANK(placement.wsr.Decline_Reason__c)) }" />
+																</apex:outputPanel>
+															</p>
+														</div>
+														<apex:outputPanel styleClass="card-property" layout="block" rendered="{!AND($Setup.Portal_Settings__c.Display_Results_Waitlist_Position__c, placement.wsrStatus == $Label.Offer_Waitlisted)}">
+															<apex:outputText value="{!$Label.Current_Waitlist_Position}">
+																<apex:param value="{!placement.wsr.Current_Waitlist_Position__c}" />
+															</apex:outputText>	
+														</apex:outputPanel>
+														<div class="card-actions">
+															<apex:outputPanel layout="none" rendered="{!placement.wsrStatus == $Label.Offer_Extended}">
+																<button type="button" 
+																	onClick="placementResults.prepareAcceptModal('{!JSENCODE(s.Id)}', '{!JSENCODE(placement.wsr.Id)}', '{!JSENCODE(s.Student_First_Name__c)}');" 
+																	class="btn offer-accept-button">{!$Label.Accept_Offer}</button>
+																<span class="help-icon">
+																	<apex:outputLink value="javascript:void(0)">
+																		<i class="fa fa-info-circle" />
+																		<span>{!helpTextMap['PlacementResults_Accept']}</span>
+																	</apex:outputLink>
+																</span>
+																<button type="button" 
+																	onClick="placementResults.displayDeclineModal('{!JSENCODE(s.Id)}', '{!JSENCODE(placement.wsr.Id)}');" 
+																	class="btn offer-decline-button">{!$Label.Decline_Offer}</button>
+																<span class="help-icon">
+																	<apex:outputLink value="javascript:void(0)">
+																		<i class="fa fa-info-circle" />
+																		<span>{!helpTextMap['PlacementResults_Decline']}</span>
+																	</apex:outputLink>
+																</span>
+															</apex:outputPanel>
+
+															<apex:outputPanel layout="none" rendered="{!placement.wsrStatus == $Label.Offer_Waitlisted}">
+																<button type="button" onClick="placementResults.displayRemoveOfferModal('{!JSENCODE(s.Id)}', '{!JSENCODE(placement.wsr.Id)}', '{!JSENCODE(s.Student_First_Name__c)}', '{!JSENCODE(currentYear)}');"
+																	class="btn offer-button offer-remove-waitlist-button" data-student-first-name="{!s.Student_First_Name__c}">{!$Label.Remove_Waitlist_Modal_Header}</button>
+																<span class="help-icon">
+																	<apex:outputLink value="javascript:void(0)">
+																		<i class="fa fa-info-circle" />
+																		<span>{!helpTextMap['PlacementResults_Remove']}</span>
+																	</apex:outputLink>
+																</span>
+															</apex:outputPanel>
+														</div>
+													</div>
+												</div>
+											</apex:repeat>											
+										</div>
+									</apex:outputPanel>
+									<!-- /CURRENT YEAR-->
+
+									<!-- CURRENT YEAR ROUND TWO -->
+									<apex:outputPanel layout="block" styleClass="round-row" rendered="{!currentRound2Placements.size > 0}">
+										<div class="year-box">
+											<div class="row student-year-row">
+												<div class="col-xs-12">
+													<span class="student-header-info">
+														<apex:outputField value="{!s.Current_Grade_Ordinal__c}" lang="{!htmlLanguage}" style="color: white;" styleClass="student-header-info" rendered="{!LEFT(LOWER(htmlLanguage), 2) != 'es'}" /> 
+														<apex:outputField value="{!s.Current_Grade_Ordinal_Spanish__c}" lang="{!htmlLanguage}" style="color: white;" styleClass="student-header-info" rendered="{!LEFT(LOWER(htmlLanguage), 2) == 'es'}" />
+													</span> 
+													<!-- Confirm which school year field this needs to look to -->
+													<span class="student-header-info">({!currentYear})</span>
+												</div>
+											</div>
+
+											<apex:repeat value="{!studentToCurrentYearRound2Placements[s.Id]}" var="placement">
+												<div class="row wsr-card">
+													<div class="col-xs-12">
+														<div class="card-property">
+															<strong>{!$Label.Rank}&nbsp;{!placement.app.Program_Rank__c}</strong>
+														</div>
+														<div class="card-property">
+															<strong>{!placement.app.Program__r.Name}</strong>
+														</div>
+														<div class="card-property">
+															<p class="status-label">
+																{!$Label.Matched_Status}:
+															</p>
+															<p class="status-value">
+																<apex:outputField value="{!placement.wsr.Offer_Status__c}" rendered="{! NOT(ISBLANK(TRIM(placement.wsrStatus))) }" />
+																<apex:outputField value="{!placement.app.hed__Application_Status__c}" rendered="{! ISBLANK(TRIM(placement.wsrStatus)) }" />
+																<apex:outputPanel layout="none" rendered="{! NOT(ISBLANK(placement.wsr.Decline_Reason__c)) }">
+																	- <apex:outputField value="{!placement.wsr.Decline_Reason__c}" rendered="{! NOT(ISBLANK(placement.wsr.Decline_Reason__c)) }" />
+																</apex:outputPanel>
+															</p>
+														</div>
+														<apex:outputPanel styleClass="card-property" layout="block" rendered="{!AND($Setup.Portal_Settings__c.Display_Results_Waitlist_Position__c, placement.wsrStatus == $Label.Offer_Waitlisted)}">
+															<apex:outputText value="{!$Label.Current_Waitlist_Position}">
+																<apex:param value="{!placement.wsr.Current_Waitlist_Position__c}" />
+															</apex:outputText>	
+														</apex:outputPanel>
+														<div class="card-actions">
+															<apex:outputPanel layout="none" rendered="{!placement.wsrStatus == $Label.Offer_Extended}">
+																<button type="button" 
+																	onClick="placementResults.prepareAcceptModal('{!JSENCODE(s.Id)}', '{!JSENCODE(placement.wsr.Id)}', '{!JSENCODE(s.Student_First_Name__c)}');" 
+																	class="btn offer-accept-button">{!$Label.Accept_Offer}</button>
+																<span class="help-icon">
+																	<apex:outputLink value="javascript:void(0)">
+																		<i class="fa fa-info-circle" />
+																		<span>{!helpTextMap['PlacementResults_Accept']}</span>
+																	</apex:outputLink>
+																</span>
+																<button type="button" 
+																	onClick="placementResults.displayDeclineModal('{!JSENCODE(s.Id)}', '{!JSENCODE(placement.wsr.Id)}');" 
+																	class="btn offer-decline-button">{!$Label.Decline_Offer}</button>
+																<span class="help-icon">
+																	<apex:outputLink value="javascript:void(0)">
+																		<i class="fa fa-info-circle" />
+																		<span>{!helpTextMap['PlacementResults_Decline']}</span>
+																	</apex:outputLink>
+																</span>
+															</apex:outputPanel>
+
+															<apex:outputPanel layout="none" rendered="{!placement.wsrStatus == $Label.Offer_Waitlisted}">
+																<button type="button" onClick="placementResults.displayRemoveOfferModal('{!JSENCODE(s.Id)}', '{!JSENCODE(placement.wsr.Id)}', '{!JSENCODE(s.Student_First_Name__c)}', '{!JSENCODE(currentYear)}');"
+																	class="btn offer-button offer-remove-waitlist-button" data-student-first-name="{!s.Student_First_Name__c}">{!$Label.Remove_Waitlist_Modal_Header}</button>
+																<span class="help-icon">
+																	<apex:outputLink value="javascript:void(0)">
+																		<i class="fa fa-info-circle" />
+																		<span>{!helpTextMap['PlacementResults_Remove']}</span>
+																	</apex:outputLink>
+																</span>
+															</apex:outputPanel>
+														</div>
+													</div>
+												</div>
+											</apex:repeat>											
+										</div>
+									</apex:outputPanel>
+									<!-- CURRENT YEAR ROUND TWO-->
+
+									<!-- ROUND 1 (FUTURE YEAR)-->
+									<apex:outputPanel layout="block" styleClass="round-row" rendered="{!round1Placements.size > 0}">
+										<div class="year-box">
+											<div class="row student-year-row">
+												<div class="col-xs-12">
+													<span class="student-header-info">
+														<apex:outputField value="{!s.Future_Grade_Ordinal__c}" lang="{!htmlLanguage}" style="color: white;" styleClass="student-header-info" rendered="{!LEFT(LOWER(htmlLanguage), 2) != 'es'}" /> 
+														<apex:outputField value="{!s.Future_Grade_Ordinal_Spanish__c}" lang="{!htmlLanguage}" style="color: white;" styleClass="student-header-info" rendered="{!LEFT(LOWER(htmlLanguage), 2) == 'es'}" /> 
+													</span> 
+													<span class="student-header-info"> - {!$Label.Student_Card_Round_1} - </span>
+													<!-- Confirm which school year field this needs to look to -->
+													<span class="student-header-info">({!futureYear})</span>
+												</div>
+											</div>
+
+											<apex:repeat value="{!studentToRound1Placements[s.Id]}" var="placement">
+												<div class="row wsr-card">
+													<div class="col-xs-12">
+														<div class="card-property">
+															<strong>{!$Label.Rank}&nbsp;{!placement.app.Program_Rank__c}</strong>
+														</div>
+														<div class="card-property">
+															<strong>{!placement.app.Program__r.Name}</strong>
+														</div>
+														<div class="card-property">
+															<p class="status-label">
+																{!$Label.Matched_Status}:
+															</p>
+															<p class="status-value">
+																<apex:outputField value="{!placement.wsr.Offer_Status__c}" rendered="{! NOT(ISBLANK(TRIM(placement.wsrStatus))) }" />
+																<apex:outputPanel rendered="{!AND(s.Future_School_Grade__c == 'Pre-K4', OR(placement.wsrStatus == $Label.Offer_Extended, CONTAINS(placement.wsrStatus, $Label.Offer_Accepted)))}">
+																	<apex:outputText value=" {!$Label.PreK_Deposit_Received}" rendered="{!placement.wsr.PreK_Deposit_Received__c}"></apex:outputText>
+																	<apex:outputText value=" {!$Label.PreK_Deposit_Pending}" rendered="{!NOT(placement.wsr.PreK_Deposit_Received__c)}"></apex:outputText>
+																</apex:outputPanel>
+																<apex:outputField value="{!placement.app.hed__Application_Status__c}" rendered="{! ISBLANK(TRIM(placement.wsrStatus)) }" />
+																<apex:outputPanel layout="none" rendered="{! NOT(ISBLANK(placement.wsr.Decline_Reason__c)) }">
+																	- <apex:outputField value="{!placement.wsr.Decline_Reason__c}" rendered="{! NOT(ISBLANK(placement.wsr.Decline_Reason__c)) }" />
+																</apex:outputPanel>
+															</p>
+														</div>
+														<apex:outputPanel styleClass="card-property" layout="block" rendered="{!AND($Setup.Portal_Settings__c.Display_Results_Waitlist_Position__c, placement.wsrStatus == $Label.Offer_Waitlisted)}">
+															<apex:outputText value="{!$Label.Current_Waitlist_Position}">
+																<apex:param value="{!placement.wsr.Current_Waitlist_Position__c}" />
+															</apex:outputText>	
+														</apex:outputPanel>
+														<div class="card-actions">
+															<apex:outputPanel layout="none" rendered="{!placement.wsrStatus == $Label.Offer_Extended}">
+																<button type="button" 
+																	onClick="placementResults.prepareAcceptModal('{!JSENCODE(s.Id)}', '{!JSENCODE(placement.wsr.Id)}', '{!JSENCODE(s.Student_First_Name__c)}');"
+																	class="btn offer-accept-button">{!$Label.Accept_Offer}</button>
+																<span class="help-icon">
+																	<apex:outputLink value="javascript:void(0)">
+																		<i class="fa fa-info-circle" />
+																		<span>{!helpTextMap['PlacementResults_Accept']}</span>
+																	</apex:outputLink>
+																</span>
+																<button type="button" 
+																	onClick="placementResults.displayDeclineModal('{!JSENCODE(s.Id)}', '{!JSENCODE(placement.wsr.Id)}');" 
+																	class="btn offer-decline-button">{!$Label.Decline_Offer}</button>
+																<span class="help-icon">
+																	<apex:outputLink value="javascript:void(0)">
+																		<i class="fa fa-info-circle" />
+																		<span>{!helpTextMap['PlacementResults_Decline']}</span>
+																	</apex:outputLink>
+																</span>
+															</apex:outputPanel>
+
+															<apex:outputPanel layout="none" rendered="{!placement.wsrStatus == $Label.Offer_Waitlisted}">
+																<button type="button" onClick="placementResults.displayRemoveOfferModal('{!JSENCODE(s.Id)}', '{!JSENCODE(placement.wsr.Id)}', '{!JSENCODE(s.Student_First_Name__c)}', '{!JSENCODE(futureYear)}');"
+																	class="btn offer-button offer-remove-waitlist-button" data-student-first-name="{!s.Student_First_Name__c}">{!$Label.Remove_Waitlist_Modal_Header}</button>
+																<span class="help-icon">
+																	<apex:outputLink value="javascript:void(0)">
+																		<i class="fa fa-info-circle" />
+																		<span>{!helpTextMap['PlacementResults_Remove']}</span>
+																	</apex:outputLink>
+																</span>
+															</apex:outputPanel>
+														</div>
+													</div>
+												</div>
+											</apex:repeat>											
+										</div>
+									</apex:outputPanel>
+									<!-- ROUND 1 (FUTURE YEAR)-->
+
+									<!-- ROUND 2 (FUTURE YEAR)-->
+									<apex:outputPanel layout="block" styleClass="round-row" rendered="{!round2Placements.size > 0}">
+										<div class="year-box">
+											<div class="row student-year-row">
+												<div class="col-xs-12">
+													<span class="student-header-info">
+														<apex:outputField value="{!s.Future_Grade_Ordinal__c}" lang="{!htmlLanguage}" style="color: white;" styleClass="student-header-info" rendered="{!LEFT(LOWER(htmlLanguage), 2) != 'es'}" /> 
+														<apex:outputField value="{!s.Future_Grade_Ordinal_Spanish__c}" lang="{!htmlLanguage}" style="color: white;" styleClass="student-header-info" rendered="{!LEFT(LOWER(htmlLanguage), 2) == 'es'}" /> 
+													</span> 
+													<span class="student-header-info"> - {!$Label.Student_Card_Round_2} - </span>
+													<!-- Confirm which school year field this needs to look to -->
+													<span class="student-header-info">({!futureYear})</span>
+												</div>
+											</div>
+
+											<apex:repeat value="{!studentToRound2Placements[s.Id]}" var="placement">
+												<div class="row wsr-card">
+													<div class="col-xs-12">
+														<div class="card-property">
+															<strong>{!$Label.Rank}&nbsp;{!placement.app.Program_Rank__c}</strong>
+														</div>
+														<div class="card-property">
+															<strong>{!placement.app.Program__r.Name}</strong>
+														</div>
+														<div class="card-property">
+															<p class="status-label">
+																{!$Label.Matched_Status}:
+															</p>
+															<p class="status-value">
+																<apex:outputField value="{!placement.wsr.Offer_Status__c}" rendered="{! NOT(ISBLANK(TRIM(placement.wsrStatus))) }" />
+																<apex:outputField value="{!placement.app.hed__Application_Status__c}" rendered="{! ISBLANK(TRIM(placement.wsrStatus)) }" />
+																<apex:outputPanel layout="none" rendered="{! NOT(ISBLANK(placement.wsr.Decline_Reason__c)) }">
+																	- <apex:outputField value="{!placement.wsr.Decline_Reason__c}" rendered="{! NOT(ISBLANK(placement.wsr.Decline_Reason__c)) }" />
+																</apex:outputPanel>
+															</p>
+														</div>
+														<apex:outputPanel styleClass="card-property" layout="block" rendered="{!AND($Setup.Portal_Settings__c.Display_Results_Waitlist_Position__c, placement.wsrStatus == $Label.Offer_Waitlisted)}">
+															<apex:outputText value="{!$Label.Current_Waitlist_Position}">
+																<apex:param value="{!placement.wsr.Current_Waitlist_Position__c}" />
+															</apex:outputText>	
+														</apex:outputPanel>
+														<div class="card-actions">
+															<apex:outputPanel layout="none" rendered="{!placement.wsrStatus == $Label.Offer_Extended}">
+																<button type="button" 
+																	onClick="placementResults.prepareAcceptModal('{!JSENCODE(s.Id)}', '{!JSENCODE(placement.wsr.Id)}', '{!JSENCODE(s.Student_First_Name__c)}');;"
+																	class="btn offer-accept-button">{!$Label.Accept_Offer}</button>
+																<span class="help-icon">
+																	<apex:outputLink value="javascript:void(0)">
+																		<i class="fa fa-info-circle" />
+																		<span>{!helpTextMap['PlacementResults_Accept']}</span>
+																	</apex:outputLink>
+																</span>
+																<button type="button" 
+																	onClick="placementResults.displayDeclineModal('{!JSENCODE(s.Id)}', '{!JSENCODE(placement.wsr.Id)}');" 
+																	class="btn offer-decline-button">{!$Label.Decline_Offer}</button>
+																<span class="help-icon">
+																	<apex:outputLink value="javascript:void(0)">
+																		<i class="fa fa-info-circle" />
+																		<span>{!helpTextMap['PlacementResults_Decline']}</span>
+																	</apex:outputLink>
+																</span>
+															</apex:outputPanel>
+
+															<apex:outputPanel layout="none" rendered="{!placement.wsrStatus == $Label.Offer_Waitlisted}">
+																<button type="button" onClick="placementResults.displayRemoveOfferModal('{!JSENCODE(s.Id)}', '{!JSENCODE(placement.wsr.Id)}', '{!JSENCODE(s.Student_First_Name__c)}', '{!JSENCODE(futureYear)}');"
+																	class="btn offer-button offer-remove-waitlist-button" data-student-first-name="{!s.Student_First_Name__c}">{!$Label.Remove_Waitlist_Modal_Header}</button>
+																<span class="help-icon">
+																	<apex:outputLink value="javascript:void(0)">
+																		<i class="fa fa-info-circle" />
+																		<span>{!helpTextMap['PlacementResults_Remove']}</span>
+																	</apex:outputLink>
+																</span>
+															</apex:outputPanel>
+														</div>
+													</div>
+												</div>
+											</apex:repeat>											
+										</div>
+									</apex:outputPanel>
+									<!-- ROUND 2 (FUTURE YEAR)-->
+								</div>
+							</apex:repeat>
+						</div>
+					</apex:outputPanel>
+
+					<div class="row" style="margin: 1rem 0;">
+						<div class="col-xs-12">
+							<apex:commandButton styleClass="btn btn-back" value="{!$Label.Back}" action="{!goToHome}" immediate="true" />
+						</div>
+					</div>
+				</div>
+
+				<!-- MODALS -->
+				<apex:outputPanel id="modals">
+					<div class="modal fade" tabindex="-1" role="dialog" id="affirm-accept-offer" data-backdrop="static" data-keyboard="true"
+						data-show="true">
+							<div class="modal-dialog" role="document">
+								<div class="modal-content">
+									<div class="modal-header">
+										<h4 class="modal-title">{!$Label.Accept_Offer_Confirmation}</h4>
+									</div>
+									<div id="affirm-accept-offer-body" class="modal-body">
+										<div id="error-language" class="message errorM3" style="display: none">
+											<apex:outputText value="{!$Label.Accept_Offer_Remove_No_Waitlist_Error}" escape="false" />
+										</div>
+										<span class="fa fa-spinner fa-pulse fa-3x fa-fw hiddenModal" style="display: none;" />
+										<p class="shownModal" style="display: block;">
+											<apex:outputText value="{!$Label.Accept_Offer_Warning}" escape="false">
+												<apex:param value="{!selectedYear}" />
+											</apex:outputText>
+											<br/>
+											<apex:outputPanel rendered="{!showWaitlistSectionOnAcceptModal}">
+												<br/>
+												<apex:outputText value="{!$Label.Accept_Offer_Waitlist_Warning}" escape="false"/>
+												<apex:repeat value="{!removeWaitlistOptions}" var="waitlistOption" id="waitlistOptions">
+													<label>
+														<apex:inputCheckbox value="{!waitlistOption.isSelected}" onclick="placementResults.disableWaitlistOptions(this.name, this.checked)" styleClass="input-checkbox"/>
+														<span class="checkbox-label">
+															<apex:outputText value="{!waitlistOption.modalLabel}" escape="false"/>
+														</span>
+													</label>
+													<br/>
+												</apex:repeat>
+											</apex:outputPanel>
+
+											<apex:outputPanel rendered="{!NOT(ISBLANK(loseFutureSeatMessage))}">
+												<br/>
+												<apex:outputText value="{!loseFutureSeatMessage}" escape="false" />
+											</apex:outputPanel>
+										</p>
+									</div>
+									<div class="modal-footer">
+										<button type="button" class="btn btn-cancel" data-dismiss="modal">{!$Label.Cancel}</button>
+										<button type="button" id="accept-offer-btn" class="btn btn-primary" data-dismiss="modal" onClick="acceptOffer(placementResults.getSelectedStudentId(), placementResults.getSelectedWsrId()); placementResults.disableAllButtons();">{!$Label.Accept_Offer}</button>
+									</div>
+								</div>
+								<!-- /.modal-content -->
+							</div>
+							<!-- /.modal-dialog -->
+						</div>
+						<!-- /.modal -->
+
+					<div class="modal fade" tabindex="-1" role="dialog" id="affirm-decline-offer" data-backdrop="static" data-keyboard="true"
+					data-show="true">
+						<div class="modal-dialog" role="document">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h4 class="modal-title">{!$Label.Decline_Reason_Modal_Header}</h4>
+								</div>
+								<div id="affirm-decline-offer-body" class="modal-body">
+									<span class="fa fa-spinner fa-pulse fa-3x fa-fw hiddenModal" style="display: none;" />
+									<p class="shownModal" style="display: block;">
+										{!$Label.Decline_Offer_Modal_Body}
+									</p>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-cancel" data-dismiss="modal">{!$Label.Cancel}</button>
+									<button type="button" id="decline-offer-btn" class="btn btn-primary" data-dismiss="modal" onClick="placementResults.disableAllButtons(); showSpinner(); declineOffer(placementResults.getSelectedStudentId(), placementResults.getSelectedWsrId());">{!$Label.Confirm}</button>
+								</div>
+							</div>
+							<!-- /.modal-content -->
+						</div>
+						<!-- /.modal-dialog -->
+					</div>
+					<!-- /.modal -->
+
+					<div class="modal fade" tabindex="-1" role="dialog" id="remove-offer" data-backdrop="static" data-keyboard="true" data-show="true">
+						<div class="modal-dialog" role="document">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h4 class="modal-title">{!$Label.Remove_Waitlist_Modal_Header}</h4>
+								</div>
+								<div id="remove-offer-body" class="modal-body">
+									<span class="fa fa-spinner fa-pulse fa-3x fa-fw hiddenModal" style="display: none;" />
+									<p id="remove-offer-template" class="hidden">{!$Label.Remove_Waitlist_Modal_Body}</p>
+									<p class="shownModal" style="display: block;" id="remove-offer-content"></p>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-cancel" data-dismiss="modal">{!$Label.Cancel}</button>
+									<button type="button" id="remove-offer-btn" class="btn btn-primary" data-dismiss="modal" onClick="placementResults.disableAllButtons(); showSpinner(); removeFromWaitlist(placementResults.getSelectedStudentId(), placementResults.getSelectedWsrId());">{!$Label.Confirm}</button>
+								</div>
+							</div>
+							<!-- /.modal-content -->
+						</div>
+						<!-- /.modal-dialog -->
+					</div>
+					<div class="modal fade" id="form-submission-modal" role="dialog" style="display: none;">
+						<div class="modal-dialog">
+							<div class="modal-content">
+								<div class="modal-body">
+									<p>
+										<apex:outputText rendered="{!NOT(createdSSoUser)}" value="{!$Label.Annual_Forms_Submission_SSOUser_Exists}" />
+										<apex:outputText rendered="{!createdSSoUser}" value="{!$Label.Annual_Forms_Submission_SSOUser_Created}" />
+									</p>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-next" data-dismiss="modal">{!$Label.Ok}</button>
+								</div>
+							</div>
+						</div>
+					</div>
+					<!-- /.modal -->
+					<div class="modal fade" tabindex="-1" id="prek-payment-modal" role="dialog" style="display: none;">
+						<div class="modal-dialog" role="document">
+							<div class="modal-content">
+								<div class="modal-header">
+									<h4 class="modal-title">{!$Label.Prek_Payment_Modal_Header}</h4>
+								</div>
+								<div id="prek-payment-body" class="modal-body">
+									<span class="fa fa-spinner fa-pulse fa-3x fa-fw hiddenModal" style="display: none;" />
+									<p class="shownModal" style="display: block;">
+										<apex:outputText value="{!$Label.Prek_Payment_Modal_Body}" escape="false" />
+									</p>
+								</div>
+								<div class="modal-footer">
+									<button type="button" class="btn btn-cancel" data-dismiss="modal">{!$Label.Close}</button>
+								</div>
+							</div>
+							<!-- /.modal-content -->
+						</div>
+						<!-- /.modal-dialog -->
+					</div>
+					<!-- /.modal -->
+
+				</apex:outputPanel>
+
+				<!-- /MODALS -->
+				<apex:actionFunction action="{!setRemoveWaitlistOptions}" name="setRemoveWaitlistOptions" reRender="messages, placement-results-table, modals" oncomplete="placementResults.displayAcceptModal(); placementResults.scrollToTop();">
+					<apex:param name="selectedStudentId" assignTo="{!selectedStudentId}" value="" />
+					<apex:param name="wsrId" assignTo="{!selectedWsrId}" value="" />
+				</apex:actionFunction>
+				<apex:actionFunction action="{!acceptOffer}" name="acceptOffer" reRender="main-form" oncomplete="postAccept();">
+					<apex:param name="selectedStudentId" assignTo="{!selectedStudentId}" value="" />
+					<apex:param name="wsrId" assignTo="{!selectedWsrId}" value="" />
+				</apex:actionFunction>
+				<apex:actionFunction action="{!declineOffer}" name="declineOffer" reRender="messages, placement-results-table" oncomplete="placementResults.enableAllButtons(); hideSpinner(); placementResults.hideModal('affirm-decline-offer'); placementResults.scrollToTop();">
+					<apex:param name="selectedStudentId" assignTo="{!selectedStudentId}" value="" />
+					<apex:param name="wsrId" assignTo="{!selectedWsrId}" value="" />
+				</apex:actionFunction>
+				<apex:actionFunction action="{!removeFromWaitlist}" name="removeFromWaitlist" reRender="messages, placement-results-table" oncomplete="placementResults.enableAllButtons(); hideSpinner(); placementResults.hideModal('remove-offer'); placementResults.scrollToTop();">
+					<apex:param name="selectedStudentId" assignTo="{!selectedStudentId}" value="" />
+					<apex:param name="wsrId" assignTo="{!selectedWsrId}" value="" />
+				</apex:actionFunction>
+				<apex:actionFunction action="{!createSSOUser}" name="createSSOUser" reRender="main-form" oncomplete="postSubmitAllForms()" />
+				<apex:actionFunction action="{!sendStudentAndGuardianToSIS}" name="sendStudentAndGuardianToSIS" reRender="main-form" oncomplete="postSendStudentAndGuardianToSIS()" />
+				<apex:actionFunction action="{!completeFormsSubmission}" name="completeFormsSubmission" reRender="main-form" oncomplete="submitComplete()" />
+				<apex:actionFunction action="{!goToUploadDocuments}" name="goToUploadDocuments" reRender="main-form">
+					<apex:param name="selectedStudent" assignTo="{!selectedStudentId}" value="" />
+				</apex:actionFunction>
+				<apex:actionFunction action="{!startForm}" name="startForm" reRender="main-form">
+					<apex:param name="selectedStudent" assignTo="{!selectedStudentId}" value="" />
+					<apex:param name="selectedTerm" assignTo="{!selectedTerm}" value="" />
+				</apex:actionFunction>
+
+				<apex:outputPanel id="scripts">
+					<script>
+						var j$ = jQuery.noConflict();
+						if ({!showFormSubmissionModal}) {
+							j$("#form-submission-modal").modal();
+						}
+						function submitComplete() {
+							placementResults.scrollToTop()
+							placementResults.showAcceptModalError();
+							placementResults.enableAllButtons();
+							hideSpinner();
+							enrollment.modal.stopLoading();
+							placementResults.showPrekPaymentModal({!showPrekPaymentModal});
+						}
+						function postAccept() {
+							if ({!hasErrors}) {
+								submitComplete();
+							} else {
+								enrollment.modal.startLoading();
+								createSSOUser();
+							}
+						}
+						function postSubmitAllForms() {
+							if ({!hasErrors}) {
+								submitComplete();
+							} else {
+								sendStudentAndGuardianToSIS();
+							}
+						}
+						function postSendStudentAndGuardianToSIS() {
+							if ({!hasErrors}) {
+								submitComplete();
+							} else {
+								completeFormsSubmission();
+							}
+						}
+					</script>
+				</apex:outputPanel>
+			</apex:form>
+			<c:PortalSupportPanel isDisplayed="{!NOT(IsStaffUser)}" content="{!PageSupport}" />
+			<c:SiteFooter />
+		</div>
+		<script type="text/javascript" src="{!URLFOR($Resource.enrollment_demo, 'js/placement-results.js')}"></script>
+	</body>
+</html>
+</apex:page>
