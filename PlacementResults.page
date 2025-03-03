@@ -264,7 +264,7 @@
 															</apex:outputText>	
 														</apex:outputPanel>
 														<div class="card-actions">
-															<apex:outputPanel layout="none" rendered="{!placement.wsrStatus == $Label.Offer_Extended}">
+															<apex:outputPanel layout="none" rendered="{!OR(placement.wsrStatus == $Label.Offer_Extended,placement.wsrStatus == $Label.Offer_Accepted_Via_Lottery)}">
 																<button type="button" 
 																	onClick="placementResults.prepareAcceptModal('{!JSENCODE(s.Id)}', '{!JSENCODE(placement.wsr.Id)}', '{!JSENCODE(s.Student_First_Name__c)}');" 
 																	class="btn offer-accept-button">{!$Label.Accept_Offer}</button>
@@ -344,7 +344,7 @@
 															</apex:outputText>	
 														</apex:outputPanel>
 														<div class="card-actions">
-															<apex:outputPanel layout="none" rendered="{!placement.wsrStatus == $Label.Offer_Extended}">
+															<apex:outputPanel layout="none" rendered="{!OR(placement.wsrStatus == $Label.Offer_Extended,placement.wsrStatus == $Label.Offer_Accepted_Via_Lottery)}">
 																<button type="button" 
 																	onClick="placementResults.prepareAcceptModal('{!JSENCODE(s.Id)}', '{!JSENCODE(placement.wsr.Id)}', '{!JSENCODE(s.Student_First_Name__c)}');" 
 																	class="btn offer-accept-button">{!$Label.Accept_Offer}</button>
@@ -552,7 +552,35 @@
 							</apex:repeat>
 						</div>
 					</apex:outputPanel>
-
+                        
+                         <!-- LWC component Embeded start -->
+            <!--        
+            <apex:page showHeader="false" sidebar="false" applyBodyTag="false" docType="html-5.0">
+                <!-- Include Lightning Out -->
+                  <apex:includeLightning />
+                
+                <!-- Container where Aura component will render -->
+              <!--  <div id="auraContainer"></div>  -->
+                
+                   <script>  
+                // Use the Lightning Out app
+                    //    $Lightning.use("c:LWCWrapperAuraApp", function() {
+                    // Create and inject the Aura component
+                    //  $Lightning.createComponent(
+                    //     "c:adbRequirement",  // Aura component wrapping your LWC
+                    //     {},                  // Attributes (if any)
+                    //    "auraContainer",     // ID of the div where the component will render
+                    //    function(cmp) {
+                    //        console.log("Aura component successfully loaded.");
+                    //        cmp.set("v.isLoading", false);
+                    //     }
+                    //   );
+                    //  });
+                  </script>  
+           <!-- </apex:page> -->
+                    <!-- LWC component Embeded End -->		
+           
+                    
 					<div class="row" style="margin: 1rem 0;">
 						<div class="col-xs-12">
 							<apex:commandButton styleClass="btn btn-back" value="{!$Label.Back}" action="{!goToHome}" immediate="true" />
@@ -763,6 +791,7 @@
 			</apex:form>
 			<c:PortalSupportPanel isDisplayed="{!NOT(IsStaffUser)}" content="{!PageSupport}" />
 			<c:SiteFooter />
+            
 		</div>
 		<script type="text/javascript" src="{!URLFOR($Resource.enrollment_demo, 'js/placement-results.js')}"></script>
 	</body>
