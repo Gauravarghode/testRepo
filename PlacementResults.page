@@ -1,6 +1,7 @@
 <apex:page showHeader="{!IsStaffUser}" sidebar="{!IsStaffUser}" applyBodyTag="false" docType="html-5.0"
  controller="PlacementResultsController" language="{!HtmlLanguage}" extensions="HelpTextControllerExtension">
 
+ 
  <html lang="{!SUBSTITUTE(htmlLanguage, '_', '-')}">
 	<head>
 		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />

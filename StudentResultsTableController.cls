@@ -9,7 +9,7 @@
 		}
 		set;
 	}
-}*/
+} added*/
 public without sharing class StudentResultsTableController {
     public Id studentId { get; set; }
     public String appType { get; set; }

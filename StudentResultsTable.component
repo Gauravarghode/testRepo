@@ -2,7 +2,7 @@
 	<apex:attribute name="recordId" description="Student record id used to get related choice results" type="Id" assignTo="{!studentId}" />
 	<apex:attribute name="recordTypeDeveloperName" description="Round Application record type developer name (Round_1, Round_2, etc)" type="String" assignTo="{!appType}" />
 	<apex:attribute name="language" description="The language of the email" type="String" assignTo="{!lan}" />
-
+    <!-- add in git -->
 	<!-- TODO: Replace in-line styling with something cleaner. Ran into issue with gmail emails removing styling if it wasn't inline -->
 	<!--<apex:outputPanel layout="none" rendered="{!wsrs.size > 0}">-->
     <apex:outputPanel layout="none" rendered="{!finalResults.size > 0}">

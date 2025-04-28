@@ -8,6 +8,7 @@
         <shortDescription>Accept Address Validation</shortDescription>
         <value>Yes, accept the alterations</value>
     </labels>
+    
     <labels>
         <fullName>Accept_Offer</fullName>
         <categories>placement results, action</categories>
